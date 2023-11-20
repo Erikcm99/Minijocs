@@ -1,6 +1,8 @@
 import sqlite3
 from tkinter import *
 import os
+from tkinter import filedialog
+
 
 if not os.path.exists("bbdd"):
     os.makedirs("bbdd")
@@ -22,9 +24,15 @@ cur_BD.execute('''CREATE TABLE IF NOT EXISTS jugadors (
 
 var_BD.commit()
 
+def seleccionar_imagen(entry_avatar):
+    ruta_imagen = filedialog.askopenfilename(title="Seleccionar imagen", filetypes=[("Archivos de imagen", "*.png;*.jpg;*.jpeg;*.gif")])
+    nombre_archivo = os.path.basename(ruta_imagen)
+    entry_avatar.delete(0, END)
+    entry_avatar.insert(0, nombre_archivo)
 
 def crea_usuari():
     ventana_usuari = Toplevel()
+    
 
     label_nick = Label(ventana_usuari, text="Nick:")
     label_nick.grid(row=0, column=0)
@@ -40,6 +48,8 @@ def crea_usuari():
     label_avatar.grid(row=2, column=0)
     entry_avatar = Entry(ventana_usuari)
     entry_avatar.grid(row=2, column=1)
+    btn_seleccionar_avatar = Button(ventana_usuari, text="Seleccionar imagen", command=lambda:seleccionar_imagen(entry_avatar))
+    btn_seleccionar_avatar.grid(row=2, column=2)
 
     label_games = Label(ventana_usuari, text="Partides jugades:")
     label_games.grid(row=3, column=0)
@@ -115,12 +125,17 @@ def comprovar_usuari(nick_entry, password_entry):
 
     resultats = cur_BD.fetchall()
 
-    if resultats == 0:
-        print("no hay")
+    contador = 0
+
+    if resultats[0][0] == 0:
+        contador =+1
+        if (contador == 3):
+            finestra.close()
     else:
         print(resultats[0][0])
 
     var_BD.close()
+
 
 
 finestra = Tk()
@@ -157,9 +172,10 @@ label_password2.grid(row=3, column=4)
 entry_password2 = Entry(frame_j2)
 entry_password2.grid(row=4, column=4)
 
-btn_entra_usuari2 = Button(
-    frame_j2, text="Crea usuari", command=crea_usuari)
-btn_entra_usuari2.grid(row=5, column=4, columnspan=2)
+btn_entra_usuari1 = Button(
+    frame_j2, text="Entrar", command=lambda:comprovar_usuari(entry_nick2.get(),entry_password2.get()))
+btn_entra_usuari1.grid(row=5, column=4, columnspan=2)
+
 
 frame_j1.grid(row=1, column=0, columnspan=2, padx=20, pady=20)
 frame_j2.grid(row=1, column=25, columnspan=2, padx=20, pady=20)
