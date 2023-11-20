@@ -1,5 +1,6 @@
 import sqlite3
 from tkinter import *
+from tkinter import filedialog as abreFoto
 import os
 
 if not os.path.exists("bbdd"):
@@ -8,6 +9,13 @@ if not os.path.exists("bbdd"):
 var_BD = sqlite3.connect(os.path.join("bbdd", "users.db"))
 
 var_path_BD = os.path.join("bbdd", "users.db")
+
+dir = os.getcwd()
+
+directori_fotos = os.path.join(dir,"profile_images")
+if not os.path.exists(directori_fotos):
+    os.makedirs(directori_fotos)
+
 
 
 cur_BD = var_BD.cursor()
@@ -22,8 +30,20 @@ cur_BD.execute('''CREATE TABLE IF NOT EXISTS jugadors (
 
 var_BD.commit()
 
+def seleccionar_imatge(imagen):
+    tipus_arxius = (
+        ('Tots els arxius', '*.*'),
+        ('Imatges tipus jpg', '*.jpg')
+    )
+    imagen = abreFoto.askopenfilename(
+        initialdir=directori_fotos,
+        title='Selecciona una imatge',
+        filetypes=tipus_arxius
+    )
 
 def crea_usuari():
+    global imatge_seleccionada
+    imatge_seleccionada = None
     ventana_usuari = Toplevel()
 
     label_nick = Label(ventana_usuari, text="Nick:")
@@ -38,8 +58,8 @@ def crea_usuari():
 
     label_avatar = Label(ventana_usuari, text="Avatar:")
     label_avatar.grid(row=2, column=0)
-    entry_avatar = Entry(ventana_usuari)
-    entry_avatar.grid(row=2, column=1)
+    entry_avatar_button = Button(ventana_usuari, text='Seleccionar i Obrir Imatge', command=lambda:seleccionar_imatge(imatge_seleccionada))
+    entry_avatar_button.grid(row=2, column=1)
 
     label_games = Label(ventana_usuari, text="Partides jugades:")
     label_games.grid(row=3, column=0)
@@ -51,10 +71,11 @@ def crea_usuari():
     entry_win = Entry(ventana_usuari)
     entry_win.grid(row=4, column=1)
 
+    print(imatge_seleccionada)
     entries = [
         entry_nick,
         entry_password,
-        entry_avatar,
+        imatge_seleccionada,
         entry_games,
         entry_win]
 
@@ -64,18 +85,18 @@ def crea_usuari():
 
     entry_nick.delete(0, END)
     entry_password.delete(0, END)
-    entry_avatar.delete(0, END)
     entry_games.delete(0, END)
     entry_win.delete(0, END)
 
 
 def afegir_a_bd(datos):
+    
     var_BD = sqlite3.connect(var_path_BD)
     cur_BD = var_BD.cursor()
 
     nick = datos[0].get()
     password = datos[1].get()
-    avatar = datos[2].get()
+    avatar = datos[2]
     games = datos[3].get()
     win = datos[4].get()
 
@@ -106,7 +127,7 @@ def comprovar_dades():
     var_BD.close()
 
 
-def comprovar_usuari(nick_entry, password_entry):
+def comprovar_usuari(nick_entry, password_entry,frame):
     var_BD = sqlite3.connect(var_path_BD)
     cur_BD = var_BD.cursor()
 
@@ -119,6 +140,7 @@ def comprovar_usuari(nick_entry, password_entry):
         print("no hay")
     else:
         print(resultats[0][0])
+
 
     var_BD.close()
 
@@ -141,7 +163,7 @@ entry_password1 = Entry(frame_j1, justify="center")
 entry_password1.grid(row=4, column=0)
 
 btn_entra_usuari1 = Button(
-    frame_j1, text="Entrar", command=lambda:comprovar_usuari(entry_nick1.get(),entry_password1.get()))
+    frame_j1, text="Entrar", command=lambda: comprovar_usuari(entry_nick1.get(), entry_password1.get(),frame_j1))
 btn_entra_usuari1.grid(row=5, column=0, columnspan=2)
 
 tit_frame2 = Label(frame_j2, anchor="center", text="Jugador 2:")
@@ -158,7 +180,7 @@ entry_password2 = Entry(frame_j2)
 entry_password2.grid(row=4, column=4)
 
 btn_entra_usuari2 = Button(
-    frame_j2, text="Crea usuari", command=crea_usuari)
+    frame_j2, text="Entrar", command=lambda: comprovar_usuari(entry_nick2.get(), entry_password2.get(),frame_j2))
 btn_entra_usuari2.grid(row=5, column=4, columnspan=2)
 
 frame_j1.grid(row=1, column=0, columnspan=2, padx=20, pady=20)
