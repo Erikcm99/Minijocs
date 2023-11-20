@@ -67,8 +67,8 @@ def crea_usuari():
     label_avatar = Label(ventana_usuari, text="Avatar:")
     label_avatar.grid(row=2, column=0)
     entry_avatar = Entry(ventana_usuari)
-    entry_avatar.grid(row=2, colaumn=1)
-    entry_avatar_button = Button(ventana_usuari, text='Seleccionar i Obrir Imatge', command=lambda:seleccionar_imatge(imatge_seleccionada))
+    entry_avatar.grid(row=2, column=1)
+    entry_avatar_button = Button(ventana_usuari, text='Seleccionar i Obrir Imatge', command=lambda:seleccionar_imagen(entry_avatar))
     entry_avatar_button.grid(row=2, column=2)
 
     label_games = Label(ventana_usuari, text="Partides jugades:")
@@ -85,7 +85,7 @@ def crea_usuari():
     entries = [
         entry_nick,
         entry_password,
-        imatge_seleccionada,
+        entry_avatar,
         entry_games,
         entry_win]
 
@@ -95,6 +95,7 @@ def crea_usuari():
 
     entry_nick.delete(0, END)
     entry_password.delete(0, END)
+    entry_avatar.delete(0, END)
     entry_games.delete(0, END)
     entry_win.delete(0, END)
 
@@ -106,7 +107,7 @@ def afegir_a_bd(datos):
 
     nick = datos[0].get()
     password = datos[1].get()
-    avatar = datos[2]
+    avatar = datos[2].get()
     games = datos[3].get()
     win = datos[4].get()
 
