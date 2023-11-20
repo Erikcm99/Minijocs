@@ -47,7 +47,7 @@ def crea_usuari():
     label_avatar = Label(ventana_usuari, text="Avatar:")
     label_avatar.grid(row=2, column=0)
     entry_avatar = Entry(ventana_usuari)
-    entry_avatar.grid(row=2, column=1)
+    entry_avatar.grid(row=2, colaumn=1)
     btn_seleccionar_avatar = Button(ventana_usuari, text="Seleccionar imagen", command=lambda:seleccionar_imagen(entry_avatar))
     btn_seleccionar_avatar.grid(row=2, column=2)
 
