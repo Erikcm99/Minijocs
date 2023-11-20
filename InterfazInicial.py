@@ -2,6 +2,8 @@ import sqlite3
 from tkinter import *
 from tkinter import filedialog as abreFoto
 import os
+from tkinter import filedialog
+
 
 if not os.path.exists("bbdd"):
     os.makedirs("bbdd")
@@ -40,11 +42,17 @@ def seleccionar_imatge(imagen):
         title='Selecciona una imatge',
         filetypes=tipus_arxius
     )
+def seleccionar_imagen(entry_avatar):
+    ruta_imagen = filedialog.askopenfilename(title="Seleccionar imagen", filetypes=[("Archivos de imagen", "*.png;*.jpg;*.jpeg;*.gif")])
+    nombre_archivo = os.path.basename(ruta_imagen)
+    entry_avatar.delete(0, END)
+    entry_avatar.insert(0, nombre_archivo)
 
 def crea_usuari():
     global imatge_seleccionada
     imatge_seleccionada = None
     ventana_usuari = Toplevel()
+
 
     label_nick = Label(ventana_usuari, text="Nick:")
     label_nick.grid(row=0, column=0)
@@ -58,8 +66,10 @@ def crea_usuari():
 
     label_avatar = Label(ventana_usuari, text="Avatar:")
     label_avatar.grid(row=2, column=0)
+    entry_avatar = Entry(ventana_usuari)
+    entry_avatar.grid(row=2, colaumn=1)
     entry_avatar_button = Button(ventana_usuari, text='Seleccionar i Obrir Imatge', command=lambda:seleccionar_imatge(imatge_seleccionada))
-    entry_avatar_button.grid(row=2, column=1)
+    entry_avatar_button.grid(row=2, column=2)
 
     label_games = Label(ventana_usuari, text="Partides jugades:")
     label_games.grid(row=3, column=0)
@@ -136,13 +146,18 @@ def comprovar_usuari(nick_entry, password_entry,frame):
 
     resultats = cur_BD.fetchall()
 
-    if resultats == 0:
-        print("no hay")
+    contador = 0
+
+    if resultats[0][0] == 0:
+        contador =+1
+        if (contador == 3):
+            finestra.close()
     else:
         print(resultats[0][0])
 
 
     var_BD.close()
+
 
 
 finestra = Tk()
