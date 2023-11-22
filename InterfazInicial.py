@@ -1,8 +1,9 @@
 import sqlite3
 from tkinter import *
-from tkinter import filedialog as abreFoto
-import os
 from tkinter import filedialog
+import os
+from PIL import Image, ImageTk
+import shutil
 
 
 if not os.path.exists("bbdd"):
@@ -18,7 +19,7 @@ directori_fotos = os.path.join(dir,"profile_images")
 if not os.path.exists(directori_fotos):
     os.makedirs(directori_fotos)
 
-
+contador = 0
 
 cur_BD = var_BD.cursor()
 
@@ -37,14 +38,28 @@ def seleccionar_imatge(imagen):
         ('Tots els arxius', '*.*'),
         ('Imatges tipus jpg', '*.jpg')
     )
-    imagen = abreFoto.askopenfilename(
+    imagen = filedialog.askopenfilename(
         initialdir=directori_fotos,
         title='Selecciona una imatge',
         filetypes=tipus_arxius
     )
 def seleccionar_imagen(entry_avatar):
+    directori_fotos = "profile_images"
+
+    if not os.path.exists(directori_fotos):
+        os.makedirs(directori_fotos)
+    
     ruta_imagen = filedialog.askopenfilename(title="Seleccionar imagen", filetypes=[("Archivos de imagen", "*.png;*.jpg;*.jpeg;*.gif")])
     nombre_archivo = os.path.basename(ruta_imagen)
+
+    ruta_destino = os.path.join(directori_fotos, nombre_archivo)
+
+    try:
+        if ruta_imagen != ruta_destino:
+            shutil.copy2(ruta_imagen, ruta_destino)
+    except Exception as e:
+        print(f"Error al copiar la imagen: {e}")
+
     entry_avatar.delete(0, END)
     entry_avatar.insert(0, nombre_archivo)
 
@@ -81,7 +96,6 @@ def crea_usuari():
     entry_win = Entry(ventana_usuari)
     entry_win.grid(row=4, column=1)
 
-    print(imatge_seleccionada)
     entries = [
         entry_nick,
         entry_password,
@@ -138,7 +152,9 @@ def comprovar_dades():
     var_BD.close()
 
 
-def comprovar_usuari(nick_entry, password_entry,frame):
+def comprovar_usuari(nick_entry, password_entry, frame: Frame, titulo_text):
+    global contador
+
     var_BD = sqlite3.connect(var_path_BD)
     cur_BD = var_BD.cursor()
 
@@ -147,14 +163,31 @@ def comprovar_usuari(nick_entry, password_entry,frame):
 
     resultats = cur_BD.fetchall()
 
-    contador = 0
-
     if resultats[0][0] == 0:
-        contador =+1
+        print("ERROR: Nick o contraseña erronea!")
+        contador += 1
         if (contador == 3):
-            finestra.close()
+            print("ALERTA: Ya lo has intentado el limite de veces permitida!")
+            finestra.destroy()
     else:
-        print(resultats[0][0])
+        cur_BD.execute("SELECT nick, avatar FROM jugadors where nick= '" +
+                   nick_entry + "' and password= '" + password_entry + "' ;")
+        
+        resultats = cur_BD.fetchall()
+        for widget in frame.winfo_children():
+            widget.destroy()
+        tit_frame = Label(frame, anchor="center", text=titulo_text)
+        tit_frame.grid(row=0, column=0)
+        nick_frame = Label(frame, anchor="center", text=nick_entry)
+        nick_frame.grid(row=1, column=0)
+        ruta_destino = os.path.join(directori_fotos, resultats[0][1])
+        imagen = Image.open(ruta_destino)
+        imagenFinal = ImageTk.PhotoImage(imagen)
+        avatar_frame = Label(frame, anchor="center", image=imagenFinal)
+        avatar_frame.grid(row=2, column=0)
+        avatar_frame.img = ImageTk.PhotoImage(imagen)
+        avatar_frame.config(image=avatar_frame.img)
+        contador = 0
 
 
     var_BD.close()
@@ -166,7 +199,7 @@ finestra.title("Menú principal")
 frame_j1 = Frame(finestra)
 frame_j2 = Frame(finestra)
 
-tit_frame1 = Label(frame_j1, anchor="center", text="Jugador 1:")
+tit_frame1 = Label(frame_j1, anchor="center", name="jugador 1" ,text="Jugador 1:")
 tit_frame1.grid(row=0, column=0)
 label_nick1 = Label(frame_j1, anchor="center", text="Nick:")
 label_nick1.grid(row=1, column=0)
@@ -179,10 +212,10 @@ entry_password1 = Entry(frame_j1, justify="center")
 entry_password1.grid(row=4, column=0)
 
 btn_entra_usuari1 = Button(
-    frame_j1, text="Entrar", command=lambda: comprovar_usuari(entry_nick1.get(), entry_password1.get(),frame_j1))
+    frame_j1, text="Entrar", command=lambda: comprovar_usuari(entry_nick1.get(), entry_password1.get(),frame_j1, tit_frame1.cget("text")))
 btn_entra_usuari1.grid(row=5, column=0, columnspan=2)
 
-tit_frame2 = Label(frame_j2, anchor="center", text="Jugador 2:")
+tit_frame2 = Label(frame_j2, anchor="center", name="jugador 2", text="Jugador 2:")
 tit_frame2.grid(row=0, column=4)
 
 label_nick2 = Label(frame_j2, text="Nick:")
@@ -196,7 +229,7 @@ entry_password2 = Entry(frame_j2)
 entry_password2.grid(row=4, column=4)
 
 btn_entra_usuari2 = Button(
-    frame_j2, text="Entrar", command=lambda: comprovar_usuari(entry_nick2.get(), entry_password2.get(),frame_j2))
+    frame_j2, text="Entrar", command=lambda: comprovar_usuari(entry_nick2.get(), entry_password2.get(),frame_j2, tit_frame2.cget("text")))
 btn_entra_usuari2.grid(row=5, column=4, columnspan=2)
 
 frame_j1.grid(row=1, column=0, columnspan=2, padx=20, pady=20)
