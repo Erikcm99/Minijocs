@@ -6,14 +6,16 @@ from PIL import Image, ImageTk
 import shutil
 from tkinter import messagebox
 
-
+#Comprobamos si existe la carpeta de "bbdd" y en caso de no existir la creamos
 if not os.path.exists("bbdd"):
     os.makedirs("bbdd")
 
+#Nos conectamos a base de datos y debajo nos guardamos como una variable la ruta donde se encuentra el archivo de la base de datos
 var_BD = sqlite3.connect(os.path.join("bbdd", "users.db"))
 
 var_path_BD = os.path.join("bbdd", "users.db")
 
+#En esta parte buscamos si existe la ruta de las imagenes y en caso de que no exista la creamos para poder usarla más tarde
 dir = os.getcwd()
 
 directori_fotos = os.path.join(dir, "profile_images")
@@ -23,6 +25,7 @@ if not os.path.exists(directori_fotos):
 contador = 0
 comprobador = 0
 
+#En esta parte nos dedicamos a crear la tabla de los jugadores con sus datos especificos
 cur_BD = var_BD.cursor()
 
 cur_BD.execute('''CREATE TABLE IF NOT EXISTS jugadors (
@@ -35,6 +38,10 @@ cur_BD.execute('''CREATE TABLE IF NOT EXISTS jugadors (
 
 var_BD.commit()
 
+
+#En este metodo nos encargamos de que cuando le demos al boton para seleccionar la imagen del jugador, guarde la imagen en la carpeta
+#donde nosotros queremos que se encuentre realizando una copia de la carpeta original y a la vez introducimos el nombre de la imagen se
+#introduce en el Entry.
 def seleccionar_imagen(entry_avatar):
     directori_fotos = "profile_images"
 
@@ -46,15 +53,19 @@ def seleccionar_imagen(entry_avatar):
 
     ruta_destino = os.path.join(directori_fotos, nombre_archivo)
 
+    #Esta es la forma de copiar la imagen de la carpeta donde se encuentra originalmente a la carpeta que nosotros queremos.
     try:
         if ruta_imagen != ruta_destino:
             shutil.copy2(ruta_imagen, ruta_destino)
     except Exception as e:
         print(f"Error al copiar la imagen: {e}")
 
+    #Borra lo que se encuentre en el Entry y lo substituye por el nombre de la imagen.
     entry_avatar.delete(0, END)
     entry_avatar.insert(0, nombre_archivo)
 
+#Este metodo crea una ventana con Labels y Entrys donde iran los datos de los usuarios, los cuales una vez le demos a añadir usuario se añadiran
+#a la base de datos.
 def crea_usuari():
     global imatge_seleccionada
     imatge_seleccionada = None
@@ -87,11 +98,12 @@ def crea_usuari():
         ventana_usuari, text="Afegir a la Base de Dades", command=lambda: afegir_a_bd(entries))
     btn_afegir.grid(row=7, column=0, columnspan=2)
 
+    #Esto borra los datos de los Entry una vez se han guardado en la base de datos.
     entry_nick.delete(0, END)
     entry_password.delete(0, END)
     entry_avatar.delete(0, END)
 
-
+#Este metodo exclusivamente se dedica a introducir los datos cuando creamos un usuario.
 def afegir_a_bd(datos):
     
     var_BD = sqlite3.connect(var_path_BD)
@@ -110,7 +122,7 @@ def afegir_a_bd(datos):
     datos[1].delete(0, END)
     datos[2].delete(0, END)
 
-
+#Este metodo nos muestra por terminal todos los datos de los usuarios que estan en la base de datos.
 def comprovar_dades():
     var_BD = sqlite3.connect(var_path_BD)
     cur_BD = var_BD.cursor()
@@ -124,7 +136,8 @@ def comprovar_dades():
 
     var_BD.close()
 
-
+#Este metodo lo usamos para validar que el usuario y contraseña que nos introducen concuerdan con los datos de la base de datos, en caso de
+#fallar 3 veces la ventana se cerrará y la aplicación también. En caso de que sean correctos las credenciales introducirá sus datos en el Frame.
 def comprovar_usuari(nick_entry, password_entry, frame: Frame, titulo_text):
     global contador
     global comprobador
@@ -148,6 +161,8 @@ def comprovar_usuari(nick_entry, password_entry, frame: Frame, titulo_text):
                    nick_entry + "' and password= '" + password_entry + "' ;")
         
         resultats = cur_BD.fetchall()
+
+        #Con este bucle elimino lo que habia anteriormente en el Frame para poder colocar los datos nuevos.
         for widget in frame.winfo_children():
             widget.destroy()
         
@@ -157,11 +172,14 @@ def comprovar_usuari(nick_entry, password_entry, frame: Frame, titulo_text):
         nick_frame = Label(frame, anchor="center", text=nick_entry)
         nick_frame.grid(row=1, column=0)
 
+        #Esta condición esta para que en caso de que no haya jugado partidas no le aparezca el porcentaje de victorias que tiene, ya que no se
+        #dividir nada entre 0 debido a que explotaria.
         if (resultats[0][2] != 0):
             resultado = (resultats[0][3] / resultats[0][2]) * 100
             wins_frame = Label(frame, anchor="center", text=str(round(resultado)) + "%")
             wins_frame.grid(row=2, column=0)
 
+        #Esto lo hacemos para poder insertar la imagen en el Frame correctamente.
         ruta_destino = os.path.join(directori_fotos, resultats[0][1])
         imagen = Image.open(ruta_destino)
         avatar_frame = Label(frame, anchor="center")
@@ -169,21 +187,25 @@ def comprovar_usuari(nick_entry, password_entry, frame: Frame, titulo_text):
         avatar_frame.img = ImageTk.PhotoImage(imagen)
         avatar_frame.config(image=avatar_frame.img)
 
+        #Este boton borrará al usuario de la base de datos y a su vez dejará el Frame como al principio para poder insertar las credenciales.
         btn_delete = Button(frame, text="Borrar usuario", command=lambda: borrarUsuario(resultats[0][4], frame, titulo_text))
         btn_delete.grid(row=4, column=0)
 
+        #Este boton abrirá una ventana secundaria donde podremos modificar los datos del usuario.
         btn_modificar = Button(frame, text="Modificar", command=lambda:modificarUsuario(nick_entry, imagen, resultats[0][1], password_entry, resultats[0][4]))
         btn_modificar.grid(row=5, column=0)
 
         contador = 0
         comprobador += 1
 
+        #Este metodo comprueba si se han validado los dos usuarios y si es así se activará el boton para poder jugar.
         activarBoton()
 
 
     var_BD.close()
 
-
+#Este metodo crea la ventana con los campos necesarios para poder indicarle los nuevos datos y modificarlos mediante botones. La imagen cambia
+#una vez se ha modificado.
 def modificarUsuario(usuario, imagen, foto, password, id):
     ventana_modificar = Toplevel()
     ventana_modificar.title("Modificar usuario")
@@ -224,7 +246,7 @@ def modificarUsuario(usuario, imagen, foto, password, id):
     btn_cerrar = Button(ventana_modificar, text="Cerrar ventana", command=ventana_modificar.destroy)
     btn_cerrar.grid(row=5, column=1)
 
-
+#Este metodo realiza una querry en la base de datos para modificar el nick del usuario.
 def modicarNick(usuarioNew, usuarioOld, id):
     var_BD = sqlite3.connect(var_path_BD)
     cur_BD = var_BD.cursor()
@@ -232,6 +254,7 @@ def modicarNick(usuarioNew, usuarioOld, id):
     var_BD.commit()
     var_BD.close()
 
+#Este metodo realiza una querry en la base de datos para modificar la contraseña del usuario.
 def modificarPassword(passwordNew, passwordOld):
     var_BD = sqlite3.connect(var_path_BD)
     cur_BD = var_BD.cursor()
@@ -239,7 +262,7 @@ def modificarPassword(passwordNew, passwordOld):
     var_BD.commit()
     var_BD.close()
 
-
+#Este metodo realiza una querry en la base de datos para modificar el avatar del usuario.
 def modificarAvatar(avatarOld, labelImagen):
     directori_fotos = "profile_images"
 
@@ -269,7 +292,7 @@ def modificarAvatar(avatarOld, labelImagen):
     labelImagen.config(image=labelImagen.img)
 
 
-
+#Este metodo realiza una querry para borrar los datos de usuario especifico y devuelve el Frame al estado original.
 def borrarUsuario(id, frame, titulo):
     var_BD = sqlite3.connect(var_path_BD)
     cur_BD = var_BD.cursor()
@@ -305,7 +328,7 @@ def activarBoton():
         btn_inici.configure(state=DISABLED)
 
 
-
+#Toda esta parte es donde definimos todos los elementos que conforman la pantalla de inicio, tanto los Frames que actuan de logins como los botones de crear, comprobar usuarios y el boton para empezar el juego.
 finestra = Tk()
 finestra.title("Menú principal")
 frame_j1 = Frame(finestra)
