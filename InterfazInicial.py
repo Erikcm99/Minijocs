@@ -5,6 +5,7 @@ import os
 from PIL import Image, ImageTk
 import shutil
 from tkinter import messagebox
+import BuscaminasPrueba
 
 #Comprobamos si existe la carpeta de "bbdd" y en caso de no existir la creamos
 if not os.path.exists("bbdd"):
@@ -336,9 +337,13 @@ def activarBoton():
         btn_inici.configure(state=DISABLED)
 
 def jugar():
-    finestra.minsize()
-    #poner el archivo.run()
-    finestra.maxsize()
+    finestra.iconify()
+    root = Tk()
+    root.grab_set()
+    def on_cierre_juego():
+        finestra.deiconify()
+    BuscaminasPrueba.Buscaminas(root, on_cierre_juego)
+
 
 #Toda esta parte es donde definimos todos los elementos que conforman la pantalla de inicio, tanto los Frames que actuan de logins como los botones de crear, comprobar usuarios y el boton para empezar el juego.
 finestra = Tk()

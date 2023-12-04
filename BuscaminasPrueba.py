@@ -5,9 +5,10 @@ import time
 
 
 class Buscaminas:
-    def __init__(self, root):
+    def __init__(self, root, on_cierre_juego=None):
         # Inicializa la ventana principal y los elementos del juego
         self.root = root
+        self.on_cierre_juego = on_cierre_juego
         self.root.title("Buscaminas")
         self.botones = []  # Matriz que almacena los botones del tablero
         self.minas = set()  # Almacena las posiciones de las minas
@@ -18,6 +19,7 @@ class Buscaminas:
         self.casillas_reveladas = set()  # Almacena las casillas reveladas por el usuario
         self.crear_tablero()  # Crea la interfaz gráfica del tablero
         self.colocar_minas()  # Coloca las minas en posiciones aleatorias
+        root.mainloop()
 
     def crear_tablero(self):
         # Crea los botones del tablero y los asocia con eventos
@@ -45,10 +47,11 @@ class Buscaminas:
 
     def salir(self):
         self.root.destroy()
+        self.on_cierre_juego()
 
     def reinicio(self):
-        buscaminas = Buscaminas(root)
-        self.root.mainloop()
+        self.root.destroy()
+        Buscaminas(tk.Tk())
 
     def colocar_minas(self):
         # Coloca aleatoriamente 15 minas en el tablero
@@ -150,6 +153,4 @@ class Buscaminas:
             self.marcadas.add((x, y))
 
 
-root = tk.Tk()
-buscaminas = Buscaminas(root)
-root.mainloop()
+
