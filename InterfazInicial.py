@@ -97,16 +97,17 @@ def crea_usuari():
         entry_avatar]
 
     btn_afegir = Button(
-        ventana_usuari, text="Afegir a la Base de Dades", command=lambda: afegir_a_bd(entries))
+        ventana_usuari, text="Afegir a la Base de Dades", command=lambda: afegir_a_bd(entries, ventana_usuari))
     btn_afegir.grid(row=7, column=0, columnspan=2)
 
     #Esto borra los datos de los Entry una vez se han guardado en la base de datos.
     entry_nick.delete(0, END)
     entry_password.delete(0, END)
     entry_avatar.delete(0, END)
+    ventana_usuari.destroy
 
 #Este metodo exclusivamente se dedica a introducir los datos cuando creamos un usuario.
-def afegir_a_bd(datos):
+def afegir_a_bd(datos, ventana : Tk):
     
     var_BD = sqlite3.connect(var_path_BD)
     cur_BD = var_BD.cursor()
@@ -123,6 +124,8 @@ def afegir_a_bd(datos):
     datos[0].delete(0, END)
     datos[1].delete(0, END)
     datos[2].delete(0, END)
+
+    ventana.destroy()
 
 #Este metodo nos muestra por terminal todos los datos de los usuarios que estan en la base de datos.
 def comprovar_dades():
