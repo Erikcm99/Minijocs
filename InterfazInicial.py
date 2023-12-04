@@ -70,6 +70,8 @@ def crea_usuari():
     global imatge_seleccionada
     imatge_seleccionada = None
     ventana_usuari = Toplevel()
+    ventana_usuari.transient(finestra)
+    ventana_usuari.grab_set()
 
 
     label_nick = Label(ventana_usuari, text="Nick:")
@@ -209,6 +211,8 @@ def comprovar_usuari(nick_entry, password_entry, frame: Frame, titulo_text):
 def modificarUsuario(usuario, imagen, foto, password, id):
     ventana_modificar = Toplevel()
     ventana_modificar.title("Modificar usuario")
+    ventana_modificar.transient(finestra)
+    ventana_modificar.grab_set()
 
     label_nick = Label(ventana_modificar, text="Nick: ")
     label_nick.grid(row=1, column=0)
@@ -320,6 +324,7 @@ def borrarUsuario(id, frame, titulo):
         frame, text="Entrar", command=lambda:comprovar_usuari(entry_nick.get(), entry_password.get(), frame, tit_frame.cget("text")))
     btn_entra_usuari.grid(row=5, column=0, columnspan=2)
 
+#Esta funcion activa el boton para empezar el juego dependiendo si han iniciado sesion los dos usuarios.
 def activarBoton():
     global comprobador
     if (comprobador == 2):
@@ -327,6 +332,10 @@ def activarBoton():
     else:
         btn_inici.configure(state=DISABLED)
 
+def jugar():
+    finestra.minsize()
+    #poner el archivo.run()
+    finestra.maxsize()
 
 #Toda esta parte es donde definimos todos los elementos que conforman la pantalla de inicio, tanto los Frames que actuan de logins como los botones de crear, comprobar usuarios y el boton para empezar el juego.
 finestra = Tk()
@@ -380,7 +389,7 @@ btn_comprovar = Button(
 btn_comprovar.grid(row=7, column=0, columnspan=2)
 
 btn_inici = Button(
-    finestra, text="Inciar joc", state=DISABLED)
+    finestra, text="Inciar joc", state=DISABLED, command=jugar)
 btn_inici.grid(row=6, column=2, columnspan=2)
 
 finestra.geometry("600x600")
